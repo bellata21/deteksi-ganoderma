@@ -3,19 +3,16 @@ from ultralytics import YOLO
 import cv2
 import numpy as np
 from PIL import Image
-
-# Impor streamlit_webrtc
 from streamlit_webrtc import webrtc_streamer, VideoProcessorBase, WebRtcMode
 from aiortc.mediastreams import VideoFrame 
 
-# --- Konfigurasi Halaman Streamlit ---
+# Konfigurasi Halaman Streamlit
 st.set_page_config(
     page_title="Deteksi Ganoderma pada Tanaman Kelapa Sawit",
-    layout="wide", # Menggunakan layout wide agar konten lebih luas
+    layout="wide", 
     initial_sidebar_state="expanded",
 )
 
-# --- Gaya Kustom (Nuansa Putih dan Biru Muda) ---
 st.markdown(
     """
     <style>
@@ -53,12 +50,12 @@ st.markdown(
     .stSidebar .stRadio div[role="radiogroup"] {
         padding: 10px;
         border-radius: 8px;
-        background-color: rgba(255,255,255,0.7); /* Putih agak transparan */
+        background-color: rgba(255,255,255,0.7); 
         margin-bottom: 15px;
         border: 1px solid #81D4FA; 
     }
     .stSidebar .stSelectbox div[data-baseweb="select"] {
-        background-color: rgba(255,255,255,0.7); /* Background selectbox di sidebar */
+        background-color: rgba(255,255,255,0.7); 
         border-radius: 8px;
         border: 1px solid #81D4FA;
     }
@@ -87,7 +84,7 @@ st.markdown(
         padding: 10px 20px;
         font-size: 16px;
         cursor: pointer;
-        transition: background-color 0.3s ease; /* Transisi halus */
+        transition: background-color 0.3s ease; 
     }
     .stButton>button:hover {
         background-color: #81D4FA; /
@@ -125,19 +122,18 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# --- Inisialisasi Session State Variabel di Awal ---
 if 'camera_image' not in st.session_state:
     st.session_state.camera_image = None
 
-# --- Muat Model YOLO ---
+# memuat model YOLO 
 @st.cache_resource
 def load_model():
     try:
-        # PATH MODEL: PASTIKAN INI SESUAI DENGAN LOKASI FILE best.pt ANDA
+        
         model = YOLO('models/best.pt')
         return model
     except Exception as e:
-        st.error(f"Gagal memuat model: {e}. Pastikan file 'models/best.pt' ada dan valid.")
+        st.error()
         return None
 
 model = load_model()
@@ -145,10 +141,10 @@ model = load_model()
 if model is None:
     st.stop() 
 
-# --- Judul Aplikasi ---
+# Judul 
 st.title("Deteksi Ganoderma pada Tanaman Kelapa Sawit")
 
-# --- Penjelasan Singkat ---
+# deskripsi
 st.write(
     """
     Jamur **Ganoderma** adalah patogen penyebab **Penyakit Busuk Pangkal Batang (BPB)**,
@@ -157,37 +153,30 @@ st.write(
 )
 st.markdown("---") 
 
-# --- Sidebar ---
+# sidebar
 st.sidebar.title("Pilih Mode Deteksi")
 detection_mode = st.sidebar.radio(
     "Mode Deteksi:",
     ("Unggah Gambar", "Ambil Gambar (Foto)", "Deteksi Realtime")
 )
 
-# --- Fungsi Deteksi Gambar (untuk Unggah/Ambil Foto) ---
+# Deteksi Gambar (untuk Unggah/Ambil Foto)
 def detect_on_image(image_input, display_placeholder):
     try:
-        # Konversi input menjadi format BGR yang diterima OpenCV dan YOLO
         img_np = None
         if isinstance(image_input, Image.Image):
-            img_np = np.array(image_input) # Konversi PIL Image ke NumPy array (RGBA atau RGB)
-            if img_np.shape[2] == 4: # Jika RGBA, konversi ke RGB
+            img_np = np.array(image_input) 
+            if img_np.shape[2] == 4: 
                 img_np = img_np[:, :, :3]
-            img = cv2.cvtColor(img_np, cv2.COLOR_RGB2BGR) # Konversi dari RGB ke BGR
+            img = cv2.cvtColor(img_np, cv2.COLOR_RGB2BGR)
         elif isinstance(image_input, np.ndarray):
-            # Asumsi jika sudah numpy array, sudah dalam BGR atau akan dihandle oleh YOLO
             img = image_input
         else:
             st.error("Format gambar tidak didukung.")
             return
 
-        # Lakukan deteksi
         results = model(img)
-
-        # Dapatkan frame yang sudah dianotasi (ini akan dalam format BGR)
         annotated_frame = results[0].plot()
-
-        # Tampilkan gambar hasil deteksi (tetap dalam BGR untuk menjaga warna asli)
         display_placeholder.image(annotated_frame, channels="BGR", use_container_width=True)
 
         # Tampilkan hasil deteksi detail
@@ -202,7 +191,7 @@ def detect_on_image(image_input, display_placeholder):
                 cls = int(results[0].boxes.cls[i].item())
                 label = names[cls]
                 st.write(f"- **{label}** (Kepercayaan: {conf:.2f}) pada koordinat: [{x1}, {y1}, {x2}, {y2}]")
-                if label == "Ganoderma": # Ganti "Ganoderma" jika nama kelas Anda berbeda
+                if label == "Ganoderma": 
                     found_ganoderma = True
             if found_ganoderma:
                 st.warning("Potensi terinfeksi Ganoderma terdeteksi! Segera lakukan penanganan.")
@@ -215,8 +204,9 @@ def detect_on_image(image_input, display_placeholder):
         st.error(f"Terjadi kesalahan saat mendeteksi gambar: {e}")
         st.exception(e)
 
-# --- Konten Utama Berdasarkan Mode Deteksi ---
-# --- Unggah Gambar ---
+
+#  Metode Deteksi 
+#  Unggah Gambar
 if detection_mode == "Unggah Gambar":
     st.header("Unggah Gambar untuk Deteksi")
     uploaded_file = st.file_uploader("Pilih gambar...", type=["jpg", "jpeg", "png"])
@@ -229,7 +219,7 @@ if detection_mode == "Unggah Gambar":
         detection_placeholder = st.empty()
         detect_on_image(image, detection_placeholder)
 
-# --- Ambil Gambar (Foto) ---
+# Ambil Gambar
 elif detection_mode == "Ambil Gambar (Foto)":
     st.header("Ambil Gambar dari Kamera")
 
@@ -245,43 +235,34 @@ elif detection_mode == "Ambil Gambar (Foto)":
     elif st.session_state.camera_image is not None:
         st.info("Ambil foto baru atau lihat hasil sebelumnya.")
 
-# --- Deteksi Realtime (Menggunakan streamlit_webrtc) ---
+# Deteksi Realtime
 elif detection_mode == "Deteksi Realtime":
     st.header("Deteksi Realtime dari Webcam")
     st.info("Kamera akan aktif secara otomatis. Berikan izin akses jika diminta.")
 
-    # Class untuk memproses video frame-by-frame
+    # ini class memproses video frame-by-frame
     class YOLOVideoProcessor(VideoProcessorBase):
         def __init__(self, model):
             self.model = model
 
         def recv(self, frame: VideoFrame) -> VideoFrame:
-            # Konversi WebRTC frame (RGB) ke NumPy array
-            img = frame.to_ndarray(format="rgb24") # Input dari webrtc_streamer adalah RGB
-            img_bgr = cv2.cvtColor(img, cv2.COLOR_RGB2BGR) # Konversi ke BGR untuk OpenCV/YOLO
-
-            # Lakukan deteksi
-            results = self.model(img_bgr, verbose=False) # verbose=False untuk mengurangi log konsol
-
-            # Dapatkan frame yang sudah dianotasi (ini akan dalam format BGR)
+            img = frame.to_ndarray(format="rgb24") 
+            img_bgr = cv2.cvtColor(img, cv2.COLOR_RGB2BGR) 
+         
+            results = self.model(img_bgr, verbose=False) 
             annotated_frame_bgr = results[0].plot()
-
-            # Konversi kembali ke RGB untuk WebRTC output
             annotated_frame_rgb = cv2.cvtColor(annotated_frame_bgr, cv2.COLOR_BGR2RGB)
 
             return VideoFrame.from_ndarray(annotated_frame_rgb, format="rgb24")
 
-
-    # Menggunakan webrtc_streamer component
+    # webrtc_streamer component
     webrtc_streamer(
-        key="ganoderma-detection-webrtc", # Kunci unik untuk instance ini
-        mode=WebRtcMode.SENDRECV, # Mengirim video dari browser dan menerima kembali
-        rtc_configuration={ # Konfigurasi ICE servers untuk konektivitas
+        key="ganoderma-detection-webrtc", 
+        mode=WebRtcMode.SENDRECV, 
+        rtc_configuration={ 
             "iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]
         },
-        video_processor_factory=lambda: YOLOVideoProcessor(model), # Factory untuk membuat processor
-        media_stream_constraints={"video": True, "audio": False}, # Hanya aktifkan video
-        async_processing=True, # Proses secara asynchronous agar UI tetap responsif
+        video_processor_factory=lambda: YOLOVideoProcessor(model), 
+        media_stream_constraints={"video": True, "audio": False}, 
+        async_processing=True, 
     )
-
-    st.warning("Webcam akan secara otomatis berhenti saat Anda beralih mode atau menutup tab browser.")
