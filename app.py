@@ -237,23 +237,34 @@ elif detection_mode == "Ambil Gambar (Foto)":
 
 # Deteksi Realtime
 elif detection_mode == "Deteksi Realtime":
-    st.header("Deteksi Realtime dari Webcam")
+    st.header("Deteksi Langsun dari Kamera")
     st.info("Kamera akan aktif secara otomatis. Berikan izin akses jika diminta.")
 
     # ini class memproses video frame-by-frame
     class YOLOVideoProcessor(VideoProcessorBase):
         def __init__(self, model):
             self.model = model
+            self.frame_count = 0
+            self.last_annotated_frame = None
 
         def recv(self, frame: VideoFrame) -> VideoFrame:
-            img = frame.to_ndarray(format="rgb24") 
-            img_bgr = cv2.cvtColor(img, cv2.COLOR_RGB2BGR) 
-         
-            results = self.model(img_bgr, verbose=False) 
-            annotated_frame_bgr = results[0].plot()
-            annotated_frame_rgb = cv2.cvtColor(annotated_frame_bgr, cv2.COLOR_BGR2RGB)
+            self.frame_count += 1
+            img = frame.to_ndarray(format="rgb24")
+            img_bgr = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
 
-            return VideoFrame.from_ndarray(annotated_frame_rgb, format="rgb24")
+            if self.frame_count % 5 == 0:
+               
+                results = self.model(img_bgr, verbose=False)
+                annotated_bgr = results[0].plot()
+                annotated_rgb = cv2.cvtColor(annotated_bgr, cv2.COLOR_BGR2RGB)
+                self.last_annotated_frame = annotated_rgb
+            else:
+                if self.last_annotated_frame is not None:
+                    annotated_rgb = self.last_annotated_frame
+                else:
+                    annotated_rgb = img 
+
+            return VideoFrame.from_ndarray(annotated_rgb, format="rgb24")
 
     # webrtc_streamer component
     webrtc_streamer(
