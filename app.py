@@ -191,14 +191,14 @@ def detect_on_image(image_input, display_placeholder):
                 cls = int(results[0].boxes.cls[i].item())
                 label = names[cls]
                 st.write(f"- **{label}** (Kepercayaan: {conf:.2f}) pada koordinat: [{x1}, {y1}, {x2}, {y2}]")
-                if label == "Ganoderma": 
+                if label.lower() == "ganoderma": 
                     found_ganoderma = True
             if found_ganoderma:
-                st.warning("Potensi terinfeksi Ganoderma terdeteksi! Segera lakukan penanganan.")
+                st.warning("Ganoderma terdeteksi! Segera lakukan penanganan.")
             else:
-                st.info("Tidak ada Ganoderma terdeteksi. Namun, selalu lakukan verifikasi visual.")
+                st.info("Ganoderma muda terdeteksi! Segera lakukan penanganan.")
         else:
-            st.info("Tidak ada objek Ganoderma terdeteksi.")
+            st.info("Tidak ada Ganoderma terdeteksi.")
 
     except Exception as e:
         st.error(f"Terjadi kesalahan saat mendeteksi gambar: {e}")
