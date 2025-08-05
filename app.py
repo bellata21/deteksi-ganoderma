@@ -151,6 +151,11 @@ st.write(
     ancaman serius bagi perkebunan kelapa sawit yang dapat menyebabkan penurunan produksi hingga kematian tanaman. Aplikasi ini hadir untuk membantu identifikasi cepat jamur Ganoderma pada tanaman kelapa sawit menggunakan model deteksi objek **YOLOv11** yang canggih.
     """
 )
+st.write(
+    """
+    **Catatan:** Gunakan aplikasi ini sesuai dengan tujuan utamannya, karena penggunaan selain itu dapat menyebabkan hasil deteksi yang tidak akurat.
+    """
+)
 st.markdown("---") 
 
 # sidebar
