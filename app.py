@@ -237,7 +237,7 @@ elif detection_mode == "Ambil Gambar (Foto)":
 
 # Deteksi Realtime
 elif detection_mode == "Deteksi Realtime":
-    st.header("Deteksi Langsun dari Kamera")
+    st.header("Deteksi Langsung dari Kamera")
     st.info("Kamera akan aktif secara otomatis. Berikan izin akses jika diminta.")
 
     # ini class memproses video frame-by-frame
